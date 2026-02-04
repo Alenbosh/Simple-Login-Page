@@ -12,7 +12,7 @@ export type User = {
 
 const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
 const JWT_SECRET = (process.env.JWT_SECRET || 'dev_secret') as jwt.Secret;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN ?? '1h') as jwt.SignOptions["expiresIn"];
 
 async function ensureUsersFile() {
   try {
@@ -99,10 +99,37 @@ export function verifyToken(token: string) {
 // The correct option name is expiresIn
 
 
-//Secret type mismatch with jwt.sign overloads
+//TypeScript didn’t trust the type of expiresIn.
 //Issue: jwt.sign has overloaded signatures. TypeScript expected the secret argument to be of type
-// Secret | Buffer | PrivateKeyInput | JsonWebKeyInput. When JWT_SECRET is just a plain string (from process.env) TS may still accept it,
-// but to satisfy the exact overloads you should type it as jwt.Secret (or cast).
-// The overload error you saw was partly triggered by the wrong option name, but explicitly typing/casting the secret removes ambiguity.
+// Because jwt.sign() has multiple versions (overloads), like:
 
-//Fix: Type the secret as jwt.Secret (or cast it) when calling sign.
+//Is expiresIn valid here or not?”
+
+// Because the type of your JWT_EXPIRES_IN variable was too vague.
+//But jsonwebtoken doesn’t accept just any string.
+
+// It wants a specific type like:
+
+// "1d"
+
+// "2h"
+
+// 60 (number in seconds)
+// (payload, secret, options)
+
+// (payload, secret, callback)
+// (payload, null, options)
+
+// etc.
+
+// Since your type didn’t match version #1 properly, TypeScript tried version #2…
+
+// And suddenly it thought your { expiresIn: ... } object was a callback function.
+
+// That’s why it said:
+
+// 'expiresIn' does not exist in type 'SignCallback'
+
+// Which makes zero sense at first glance.
+
+//Fix: TypeScript didn’t trust the type of expiresIn.
