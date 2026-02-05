@@ -39,7 +39,7 @@ async function writeUsers(users: User[]) {
 }
 
 
-async function createUser({ email, password }: { email: string; password: string }) {
+export async function createUser({ email, password }: { email: string; password: string }) {
   const users = await readUsers();
   if (users.find(u => u.email === email)) {
     throw new Error('User already exits')
