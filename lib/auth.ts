@@ -61,7 +61,7 @@ export async function verifyUser({ email, password }: { email: string; password:
 }
 
 export function signToken(payload: { id: string; email: string }) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN, algorithm:'HS256' });
 }
 
 export function verifyToken(token: string) {
